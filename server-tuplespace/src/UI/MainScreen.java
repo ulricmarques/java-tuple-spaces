@@ -22,7 +22,7 @@ public class MainScreen {
         // Hospedar
         panelMain = new JPanel();
         panelMain.setLayout(null); 
-        panelMain.setSize(300, 400);
+        panelMain.setSize(800, 600);
 
         labelServerPort = new JLabel("Servidor rodando...");
         labelServerPort.setBounds(250, 200, 140, 40);

@@ -106,7 +106,10 @@ public class SetupScreen implements ActionListener{
                 msg.setName(playerName);
                 parentGUI.socket = parentGUI.client.getSocket();
                 parentGUI.client.send(msg);
-               
+                
+                Packet msg2 = new Packet();
+                msg2.setAction(Action.UPDATE);
+                parentGUI.client.send(msg2);
  
             }
         }

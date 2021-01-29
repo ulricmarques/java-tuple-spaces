@@ -1,7 +1,6 @@
 package UI;
 
 import Communication.Client;
-import Communication.Server;
 import java.awt.CardLayout;
 import java.io.Serializable;
 import java.net.Socket;
@@ -39,9 +38,10 @@ public class GUI implements Serializable{
         
         window.add(switchPanels);
         window.setResizable(false); 
-        window.setSize(560, 440);
+        window.setSize(800, 600);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setVisible(true); 
     }
+    
 
 }

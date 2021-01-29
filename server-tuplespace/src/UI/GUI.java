@@ -35,7 +35,7 @@ public class GUI implements Serializable{
         
         window.add(switchPanels);
         window.setResizable(false); 
-        window.setSize(300, 400);
+        window.setSize(600, 400);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setVisible(true); 
     }

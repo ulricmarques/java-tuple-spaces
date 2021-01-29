@@ -264,10 +264,23 @@ public class SpaceController {
         return wasEmpty;
     }
     
+    public Root getCloudList(){
+        Root template = new Root();
+        
+        Root root = null;
+        
+        try {
+            root = (Root) space.read(template, null, 60 * 1000);
+        } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
+            System.out.println("Error: " + ex);
+        }
+        
+        return root;
+        
+    }
     
     
-    
-    public void list(){
+    public void printSpace(){
         Root template = new Root();
         
         try {

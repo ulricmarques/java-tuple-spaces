@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import Communication.Packet.Action;
+import River.Tuples.Root;
 import UI.GUI;
 
 
@@ -24,7 +25,7 @@ public class Client {
     private String ip;
     private int portNumber;
     public String clientName;
-    
+  
     public GUI parentGUI;
     
     public Client(String host, int port, String name, GUI parentGUI ){
@@ -53,9 +54,9 @@ public class Client {
         return socket;
     }
     
-    public void send(Packet message) {
+    public void send(Packet packet) {
         try {
-            output.writeObject(message);
+            output.writeObject(packet);
             System.out.println("Enviou a mensagem: ");
         } catch (IOException ex) {
             System.out.println("Erro no send: " + ex);
@@ -78,10 +79,10 @@ public class Client {
 
         @Override
         public void run() {
-            Packet message = null;
+            Packet packet = null;
             try {
-                while ((message = (Packet) input.readObject()) != null) {
-                    Packet.Action action = message.getAction();
+                while ((packet = (Packet) input.readObject()) != null) {
+                    Packet.Action action = packet.getAction();
                     
                     System.out.println("Recebeu action: " + action);
 
@@ -91,7 +92,11 @@ public class Client {
 //                        disconnected();
 //                        socket.close();
                     } else if (action.equals(Action.USERS_ONLINE)) {
-//                        refreshOnlines(message);
+//                        refreshOnlines(packet);
+                    } else if (action.equals(Action.UPDATE)) {
+                        Root currentRoot = (Root) packet.getContent();
+                        System.out.println("Caiu no update: " + currentRoot.cloudList.get(0).name);
+                        parentGUI.mainScreen.rebuildTree(currentRoot);
                     }
                 }
             } catch (IOException ex) {

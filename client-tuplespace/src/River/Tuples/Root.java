@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Tuples;
+package River.Tuples;
 
 import java.util.ArrayList;
 import net.jini.core.entry.Entry;
@@ -12,15 +12,11 @@ import net.jini.core.entry.Entry;
  *
  * @author Ulric
  */
-public class Host implements Entry {
+public class Root implements Entry{
     
-    public String name;
-    public ArrayList<VirtualMachine> virtualMachineList;
-    public Cloud parent;
+    public ArrayList<Cloud> cloudList;
     
-    public Host(){
+    public Root(){
         
     }
-    
-    
 }

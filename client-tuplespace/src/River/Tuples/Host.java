@@ -3,20 +3,22 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Tuples;
+package River.Tuples;
 
+import java.util.ArrayList;
 import net.jini.core.entry.Entry;
 
 /**
  *
  * @author Ulric
  */
-public class Process implements Entry {
+public class Host implements Entry {
     
     public String name;
-    public VirtualMachine parent;
+    public ArrayList<VirtualMachine> virtualMachineList;
+    public Cloud parent;
     
-    public Process(){
+    public Host(){
         
     }
     

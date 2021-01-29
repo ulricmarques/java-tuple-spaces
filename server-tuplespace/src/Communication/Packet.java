@@ -54,6 +54,6 @@ public class Packet implements Serializable {
     }
         
     public enum Action {
-        CONNECT, DISCONNECT, SEND_ONE, SEND_ALL, USERS_ONLINE
+        CONNECT, DISCONNECT, UPDATE, SEND_ONE, SEND_ALL, USERS_ONLINE
     }
 }

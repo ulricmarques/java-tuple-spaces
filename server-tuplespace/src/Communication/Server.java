@@ -1,6 +1,8 @@
 package Communication;
 
 import Communication.Packet.Action;
+import River.SpaceController;
+import River.Tuples.Root;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -24,10 +26,28 @@ public class Server implements Runnable {
     private Socket socket;
     private Map<String, ObjectOutputStream> mapOnlines = new HashMap<String, ObjectOutputStream>();
     private int portNumber;
-
+    
+    public SpaceController spaceController;
     
     public Server(int port) {
-        this.portNumber = port;      
+        this.portNumber = port;
+        spaceController = new SpaceController();
+        spaceController.AddTuple();
+        spaceController.AddTuple("nuvem1");
+        spaceController.AddTuple("nuvem1", "host1");
+        spaceController.AddTuple("nuvem1", "host1", "vm1");
+        spaceController.AddTuple("nuvem2");
+        spaceController.AddTuple("nuvem2", "host1");
+        spaceController.AddTuple("nuvem2", "host1", "vm1");
+        spaceController.AddTuple("nuvem1", "host2");
+        
+        System.out.println("Before");
+        spaceController.printSpace();
+        
+        spaceController.RemoveTuple("nuvem1", "host2");
+        
+        System.out.println("After");
+        spaceController.printSpace();
     }
     
     public int getPort(){
@@ -79,26 +99,31 @@ public class Server implements Runnable {
 
         @Override
         public void run() {
-            Packet message = null;
+            Packet packet = null;
             try {
-                while ((message = (Packet) input.readObject()) != null) {
-                    Action action = message.getAction();
-                    
-                    System.out.println("Recebeu acton: " + action);
-
+                while ((packet = (Packet) input.readObject()) != null) {
+                    Action action = packet.getAction();
+                    System.out.println("Recebeu action: " + action);
                     if (action.equals(Action.CONNECT)) {
-                        boolean isConnected = connect(message, output);
+                        boolean isConnected = connect(packet, output);
                         if (isConnected) {
-                            mapOnlines.put(message.getName(), output);
+                            mapOnlines.put(packet.getName(), output);
                             System.out.println("Cliente conectado: " + mapOnlines.size());
                             sendOnlines();
                         }
                     } else if (action.equals(Action.DISCONNECT)) {
-                        disconnect(message, output);
+                        disconnect(packet, output);
                         sendOnlines();
                         return;
                     } else if (action.equals(Action.SEND_ALL)) {
-                        sendAll(message);
+                        sendAll(packet);
+                    } else if (action.equals(Action.UPDATE)) {
+                        Root currentRoot = spaceController.getCloudList();
+                        
+                        Packet newPacket = new Packet();
+                        packet.setAction(Action.UPDATE);
+                        packet.setContent(currentRoot);                                                                                 
+                        sendAll(packet);
                     }
                 } 
             } catch (ClassNotFoundException | IOException ex) {
@@ -107,52 +132,51 @@ public class Server implements Runnable {
         }
     }
 
-    private boolean connect(Packet message, ObjectOutputStream output) {
+    private boolean connect(Packet packet, ObjectOutputStream output) {
         if (mapOnlines.size() == 0) {
-            message.setContent("YES");
-            send(message, output);
+            packet.setContent("YES");
+            send(packet, output);
             System.out.println("map size: " + mapOnlines.size());
             return true; 
         }
         
         //Checa se o nome já está na lista de clientes
-        if (mapOnlines.containsKey(message.getName())) {
-            message.setContent("NO");
-            send(message, output);
+        if (mapOnlines.containsKey(packet.getName())) {
+            packet.setContent("NO");
+            send(packet, output);
             return false;
         } else {
-            message.setContent("YES");
-            send(message, output);
+            packet.setContent("YES");
+            send(packet, output);
             return true;
         }
         
         
     }
 
-    public void disconnect(Packet message, ObjectOutputStream output) {
-        mapOnlines.remove(message.getName());
+    public void disconnect(Packet packet, ObjectOutputStream output) {
+        mapOnlines.remove(packet.getName());
 
-        message.setContent("até logo!");
-        sendAll(message);
-        System.out.println("User " + message.getName() + " desconectou");
+        packet.setContent("até logo!");
+        sendAll(packet);
+        System.out.println("User " + packet.getName() + " desconectou");
     }
 
-    public void send(Object message, ObjectOutputStream output) {
+    public void send(Object packet, ObjectOutputStream output) {
         try {
-            output.writeObject(message);
+            output.writeObject(packet);
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
 
-    public void sendAll(Packet message) {
+    public void sendAll(Packet packet) {
         System.out.println("Chegou no sendAll: " + mapOnlines.size());
         for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
-            if (!kv.getKey().equals(message.getName())) {
-                message.setAction(Action.SEND_ONE);
+            if (!kv.getKey().equals(packet.getName())) {
                 try {
-                    kv.getValue().writeObject(message);
+                    kv.getValue().writeObject(packet);
                 } catch (IOException ex) {
                     Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -167,14 +191,14 @@ public class Server implements Runnable {
             setNames.add(kv.getKey());
         }
 
-        Packet message = new Packet();
-        message.setAction(Action.USERS_ONLINE);
-        message.setSetOnlines(setNames);
+        Packet packet = new Packet();
+        packet.setAction(Action.USERS_ONLINE);
+        packet.setSetOnlines(setNames);
 
         for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
-            message.setName(kv.getKey());
+            packet.setName(kv.getKey());
             try {
-                kv.getValue().writeObject(message);
+                kv.getValue().writeObject(packet);
             } catch (IOException ex) {
                 Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
             }
