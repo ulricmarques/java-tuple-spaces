@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-ext/jsk-policy.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/browser-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/fiddler-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/group-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/jsk-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/mahalo-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/mercury-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/norm-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/outrigger-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/phoenix-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/reggie-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib-dl/sdm-dl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/asm-3.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/asm-commons-3.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/browser.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/checkconfigurationfile.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/checkser.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/classdep.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/classserver.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/computedigest.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/computehttpmdcodebase.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/destroy.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/envcheck.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/extra.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/fiddler.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/group.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/jarwrapper.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/jini-core.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/jini-ext.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/jsk-debug-policy.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/jsk-lib.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/jsk-platform.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/jsk-resources.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/mahalo.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/mercury.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/norm.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/outrigger.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/outrigger-snaplogstore.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/phoenix.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/phoenix-group.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/phoenix-init.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/preferredlistgen.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/reggie.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/serviceui.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/sharedvm.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/start.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/sun-util.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ulric/Downloads/ApacheRiver/river/lib/tools.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
