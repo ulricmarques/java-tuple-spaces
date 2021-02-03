@@ -1,15 +1,15 @@
 
 package Communication;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import Communication.Packet.Action;
+import River.Tuples.ClientMessage.Action;
+import River.Tuples.ClientMessage;
+import River.Tuples.Cloud;
+import River.Tuples.Host;
+import River.Tuples.Process;
+import River.Tuples.ProcessMessage;
 import River.Tuples.Root;
+import River.Tuples.ServerMessage;
+import River.Tuples.VirtualMachine;
 import UI.GUI;
 
 
@@ -19,90 +19,64 @@ import UI.GUI;
  */
 public class Client {
     
-    private Socket socket;
-    public ObjectOutputStream output;
-    public ObjectInputStream input;
-    private String ip;
-    private int portNumber;
     public String clientName;
   
     public GUI parentGUI;
     
-    public Client(String host, int port, String name, GUI parentGUI ){
+    public SpaceController spaceController;
+    
+    public Client(String name, GUI parentGUI ){
         this.parentGUI = parentGUI;
-        this.ip = host;
-        this.portNumber = port;
         this.clientName = name;
-    }
-    
-    public boolean connect() {
-        try {
-            this.socket = new Socket(this.ip, this.portNumber);
-            this.output = new ObjectOutputStream(socket.getOutputStream());
-        } catch (UnknownHostException ex) {          
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        } catch (IOException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }
         
-        return true;
+        spaceController = new SpaceController();
+        spaceController.Connect(this.clientName);
+        
     }
-    
-    public Socket getSocket(){
-        return socket;
-    }
-    
-    public void send(Packet packet) {
-        try {
-            output.writeObject(packet);
-            System.out.println("Enviou a mensagem: ");
-        } catch (IOException ex) {
-            System.out.println("Erro no send: " + ex);
-        }
+       
+    public void send(Object content, Action action) {
+        spaceController.SendToServer(this.clientName, content, action);
     }
     
     public void startListener(){
-       new Thread(new ListenerSocket(socket)).start();
+       new Thread(new ListenerSocket()).start();
     }
     
     private class ListenerSocket implements Runnable {
 
-        public ListenerSocket(Socket socket) {
-            try {
-                input = new ObjectInputStream(socket.getInputStream());
-            } catch (IOException ex) {
-                Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        public ListenerSocket() {
+        	
         }
 
         @Override
         public void run() {
-            Packet packet = null;
-            try {
-                while ((packet = (Packet) input.readObject()) != null) {
-                    Packet.Action action = packet.getAction();
-                    
-                    System.out.println("Recebeu action: " + action);
-
-                    if (action.equals(Action.CONNECT)) {
-                        System.out.println("Conectado.");
-                    } else if (action.equals(Action.DISCONNECT)) {
-//                        disconnected();
-//                        socket.close();
-                    } else if (action.equals(Action.USERS_ONLINE)) {
-//                        refreshOnlines(packet);
-                    } else if (action.equals(Action.UPDATE)) {
-                        Root currentRoot = (Root) packet.getContent();
-                        System.out.println("Caiu no update: " + currentRoot.cloudList.get(0).name);
-                        parentGUI.mainScreen.rebuildTree(currentRoot);
+        	while (true) {
+                try {
+                	ServerMessage template = new ServerMessage();
+                	template.clientName = clientName;
+                	ServerMessage message = (ServerMessage) spaceController.space.take(template, null, Long.MAX_VALUE);
+                    if (message == null) {
+                        System.out.println("Timeout error.");
                     }
+                    else{
+                    	System.out.println("Recebeu mensagem do servidor: " + message.action);
+                    	River.Tuples.ServerMessage.Action currentAction = (River.Tuples.ServerMessage.Action) message.action;
+                		if(currentAction.equals(River.Tuples.ServerMessage.Action.UPDATE)) {
+                			Root currentRoot = (Root) message.content;
+                            parentGUI.mainScreen.rebuildTree(currentRoot);
+                    	} 
+                    	else if(currentAction.equals(River.Tuples.ServerMessage.Action.MESSAGE)) {
+                    		ProcessMessage processMessage = (ProcessMessage) message.content;                   		
+                    		parentGUI.mainScreen.setDisplayText("(" + 
+                    									processMessage.origin.name + ") enviou para (" +
+                										processMessage.destination + "): " + 
+                    									processMessage.text);                    		
+                    	} 
+                    }
+                	
+                } catch (Exception e) {
+                	
                 }
-            } catch (IOException ex) {
-                System.out.println("Erro: " + ex);
-            } catch (ClassNotFoundException ex) {
-                System.out.println("Erro: " + ex);
             }
         }
     }

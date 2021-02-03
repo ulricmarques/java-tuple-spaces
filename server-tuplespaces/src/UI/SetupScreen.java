@@ -18,11 +18,9 @@ public class SetupScreen implements ActionListener{
    
     public final JPanel panelHost;
     
-    private final JTextField inputServerPort;
-
     private final JButton runHost;
    
-    private final JLabel labelServerPort;
+    private final JLabel labelServer;
     
     protected GUI parentGUI;
 
@@ -31,25 +29,19 @@ public class SetupScreen implements ActionListener{
         
         this.parentGUI = parentGUI;
         
-        // Hospedar
         panelHost = new JPanel();
         panelHost.setLayout(null); 
         panelHost.setSize(300, 400);
 
-        inputServerPort = new JTextField();
-        inputServerPort.setBounds(170, 50, 100, 40);
-        inputServerPort.addActionListener(this);
-        inputServerPort.setText("5000");
-        labelServerPort = new JLabel("Digite a porta:");
-        labelServerPort.setBounds(50, 50, 140, 40);
+        labelServer = new JLabel("Execute o Apache River antes de iniciar o servidor");
+        labelServer.setBounds(20, 30, 305, 40);
         
         runHost = new JButton("Iniciar servidor");
-        runHost.setBounds(70, 100, 140, 40);
+        runHost.setBounds(115, 150, 120, 50);
         runHost.addActionListener(this);
         
         panelHost.add(runHost);
-        panelHost.add(inputServerPort);
-        panelHost.add(labelServerPort);
+        panelHost.add(labelServer);
 
         
     }
@@ -59,24 +51,11 @@ public class SetupScreen implements ActionListener{
 
         CardLayout changePages = (CardLayout) (parentGUI.switchPanels.getLayout());
         
-        if (e.getSource() == runHost && (inputServerPort.getText().length() < 1)) {
-            JOptionPane.showMessageDialog(null, "Campo porta não foi preenchido");
-        }
-
-        if (e.getSource() == runHost && inputServerPort.getText().length() > 0) {
-            int portNumber = Integer.parseInt(inputServerPort.getText());
- 
-            parentGUI.server = new Server(portNumber);
-            boolean serverCreated = parentGUI.server.initializeServer();
+        if (e.getSource() == runHost) {
+            parentGUI.server = new Server();
+            changePages.show(parentGUI.switchPanels, "main");
+            new Thread(parentGUI.server).start();
             
-            if(!serverCreated){
-                JOptionPane.showMessageDialog(null, "Não foi possível criar o servidor. "
-                        + "A porta digitada pode estar ocupada.","Falha ao criar servidor", JOptionPane.ERROR_MESSAGE);
-            }
-            else {
-                changePages.show(parentGUI.switchPanels, "main");
-                new Thread(parentGUI.server).start();
-            }
         }
 
     }   

@@ -5,14 +5,19 @@
  */
 package River;
 
+import River.Tuples.ClientList;
 import River.Tuples.Cloud;
 import River.Tuples.Root;
+import River.Tuples.ServerMessage;
+import River.Tuples.ServerMessage.Action;
 import River.Tuples.Host;
 import River.Tuples.Process;
+import River.Tuples.ProcessMessage;
 import River.Tuples.VirtualMachine;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import net.jini.core.entry.UnusableEntryException;
+import net.jini.core.lease.Lease;
 import net.jini.core.transaction.TransactionException;
 import net.jini.space.JavaSpace;
 
@@ -35,18 +40,50 @@ public class SpaceController {
         System.out.println("O servico JavaSpace foi encontrado.");
         System.out.println(space);
     }
+    
+    public void createClientList() {
+    	ClientList list = new ClientList();
+    	list.clients = new ArrayList<>();
+    	
+    	try {
+			space.write(list, null, Lease.FOREVER);
+		} catch (RemoteException | TransactionException e) {
+			System.out.println("Error: " + e);
+		}
+    }
+    
+    public void addClient(String name) {
+    	ClientList template = new ClientList();  	
+		try {
+			ClientList list = (ClientList) space.take(template, null, 60 * 1000);
+			list.clients.add(name);
+			space.write(list, null, Lease.FOREVER);
+		} catch (RemoteException | UnusableEntryException | TransactionException | InterruptedException e) {
+			System.out.println("Error: " + e);
+		}    	
+    }
+    
+    public void sendToClient(String clientName, Object content, Action action) {
+    	ServerMessage serverMessage = new ServerMessage(clientName, content, action);
+    	try {
+            space.write(serverMessage, null, Long.MAX_VALUE);
+        } catch (TransactionException | RemoteException ex) {
+            System.out.println("Error: " + ex);
+        }
+    	
+    }
        
-    public void AddTuple(){
+    public void addTuple(){
         Root root = new Root();
         root.cloudList = new ArrayList<>();
         try {
-            space.write(root, null, 60 * 1000);
+            space.write(root, null, Long.MAX_VALUE);
         } catch (TransactionException | RemoteException ex) {
             System.out.println("Error: " + ex);
         }
     }
     
-    public void AddTuple(String cloudName){
+    public void addTuple(String cloudName){
         Root template = new Root();
         
         try {
@@ -58,14 +95,14 @@ public class SpaceController {
             newCloud.hostList = new ArrayList<>();
             
             root.cloudList.add(newCloud);
-            this.space.write(root, null, 60 * 1000);
+            this.space.write(root, null, Long.MAX_VALUE);
         } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
             System.out.println("Error: " + ex);
         }
           
     }
     
-    public void AddTuple(String cloudName, String hostName){
+    public void addTuple(String cloudName, String hostName){
         Root template = new Root();
         
         try {
@@ -81,13 +118,13 @@ public class SpaceController {
                 }  
             });
             
-            this.space.write(root, null, 60 * 1000);
+            this.space.write(root, null, Long.MAX_VALUE);
         } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
             System.out.println("Error: " + ex);
         }
     }
     
-    public void AddTuple(String cloudName, String hostName, String virtualMachineName){
+    public void addTuple(String cloudName, String hostName, String virtualMachineName){
         Root template = new Root();
         
         try {
@@ -107,13 +144,13 @@ public class SpaceController {
                 }  
             });
             
-            this.space.write(root, null, 60 * 1000);
+            this.space.write(root, null, Long.MAX_VALUE);
         } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
             System.out.println("Error: " + ex);
         }
     }
     
-    public void AddTuple(String cloudName, String hostName, String virtualMachineName, String processName){
+    public void addTuple(String cloudName, String hostName, String virtualMachineName, String processName){
         Root template = new Root();
         
         try {
@@ -136,16 +173,14 @@ public class SpaceController {
                 }  
             });
             
-            this.space.write(root, null, 60 * 1000);
+            this.space.write(root, null, Long.MAX_VALUE);
         } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
             System.out.println("Error: " + ex);
         }
     }
     
-    public boolean RemoveTuple(String cloudName){
-        Root template = new Root();
-        boolean wasEmpty = false;
-        
+    public void removeTuple(String cloudName){
+        Root template = new Root();;       
         try {
             Root root = (Root) space.take(template, null, 60 * 1000);
             
@@ -153,23 +188,20 @@ public class SpaceController {
             for(Cloud cloud : root.cloudList){
                 if(cloud.name.equals(cloudName) && cloud.hostList.isEmpty()){
                     temp = cloud;
-                    wasEmpty = true;
                 }     
             }
             
             root.cloudList.remove(temp);
-            this.space.write(root, null, 60 * 1000);
+            this.space.write(root, null, Long.MAX_VALUE);
         } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
             System.out.println("Error: " + ex);
         }
         
-        return wasEmpty;
           
     }
     
-    public boolean RemoveTuple(String cloudName, String hostName){
+    public void removeTuple(String cloudName, String hostName){
         Root template = new Root();
-        boolean wasEmpty = false;
         
         try {
             Root root = (Root) space.take(template, null, 60 * 1000);
@@ -180,25 +212,20 @@ public class SpaceController {
                     for(Host host : cloud.hostList){
                         if(host.name.equals(hostName) && host.virtualMachineList.isEmpty()){
                             temp = host;
-                            wasEmpty = true;
                         }
-                    }
-                    
+                    }                 
                     cloud.hostList.remove(temp);
                 }     
             }
             
-            this.space.write(root, null, 60 * 1000);
+            this.space.write(root, null, Long.MAX_VALUE);
         } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
             System.out.println("Error: " + ex);
-        }
-        
-        return wasEmpty;
+        }        
     }
     
-    public boolean RemoveTuple(String cloudName, String hostName, String virtualMachineName){
+    public void removeTuple(String cloudName, String hostName, String virtualMachineName){
         Root template = new Root();
-        boolean wasEmpty = false;
         
         try {
             Root root = (Root) space.take(template, null, 60 * 1000);
@@ -211,7 +238,6 @@ public class SpaceController {
                             for(VirtualMachine virtualMachine : host.virtualMachineList){
                                 if(virtualMachine.name.equals(virtualMachineName) && virtualMachine.processList.isEmpty()){
                                     temp = virtualMachine;
-                                    wasEmpty = true;
                                 }
                             }
                             
@@ -220,17 +246,15 @@ public class SpaceController {
                     }
                 }     
             }
-            this.space.write(root, null, 60 * 1000);
+            this.space.write(root, null, Long.MAX_VALUE);
         } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
             System.out.println("Error: " + ex);
         }
         
-        return wasEmpty;
     }
     
-    public boolean RemoveTuple(String cloudName, String hostName, String virtualMachineName, String processName){
+    public void removeTuple(String cloudName, String hostName, String virtualMachineName, String processName){
         Root template = new Root();
-        boolean wasEmpty = false;
         
         try {
             Root root = (Root) space.take(template, null, 60 * 1000);
@@ -244,11 +268,9 @@ public class SpaceController {
                                 if(virtualMachine.name.equals(virtualMachineName)){
                                     for(Process process : virtualMachine.processList){
                                         if(process.name.equals(processName)){
-                                            temp = null;
-                                            wasEmpty = true;
+                                            temp = process;                                           
                                         }
-                                    }
-                                    
+                                    }                               
                                     virtualMachine.processList.remove(temp);
                                 }
                             }                                                      
@@ -256,13 +278,135 @@ public class SpaceController {
                     }
                 }     
             }
-            this.space.write(root, null, 60 * 1000);
+            this.space.write(root, null, Long.MAX_VALUE);
         } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
             System.out.println("Error: " + ex);
-        }
-        
-        return wasEmpty;
+        }       
     }
+    
+    public void migrateHost(Cloud cloudObject, Host hostObject, String originalName){
+        Root template = new Root();
+        
+        try {
+            Root root = (Root) space.take(template, null, 60 * 1000);
+            
+            Host temp = null;
+            for(Cloud cloud : root.cloudList){
+                if(cloud.name.equals(hostObject.parent.name)){
+                    for(Host host : cloud.hostList){
+                        if(host.name.equals(originalName)){
+                            temp = host;
+                        }
+                    }                 
+                    cloud.hostList.remove(temp);
+                }     
+            }
+            
+            for(Cloud cloud: root.cloudList){
+                if(cloud.name.equals(cloudObject.name)){
+                    if(temp != null){
+                    	temp.name = hostObject.name;
+                        cloud.hostList.add(temp);
+                    }
+                }
+            }
+            
+            this.space.write(root, null, Long.MAX_VALUE);
+        } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
+            System.out.println("Error: " + ex);
+        }        
+    }
+    
+    public void migrateVirtualMachine(Host hostObject, VirtualMachine virtualMachineObject, String originalName){
+        Root template = new Root();
+        
+        try {
+            Root root = (Root) space.take(template, null, 60 * 1000);
+            
+            VirtualMachine temp = null;
+            for(Cloud cloud : root.cloudList){
+                if(cloud.name.equals(virtualMachineObject.parent.parent.name)){
+                    for(Host host : cloud.hostList){
+                        if(host.name.equals(virtualMachineObject.parent.name)){
+                        	for(VirtualMachine virtualMachine : host.virtualMachineList){
+                                if(virtualMachine.name.equals(originalName)){
+                                	temp = virtualMachine;
+                                }       
+                        	}                       	
+                        	host.virtualMachineList.remove(temp);
+                        }
+                    }                 
+                }     
+            }
+            
+            for(Cloud cloud: root.cloudList){
+                if(cloud.name.equals(hostObject.parent.name)){
+                	for(Host host : cloud.hostList){
+                        if(host.name.equals(hostObject.name)){
+                        	if(temp != null){
+                        		temp.name = virtualMachineObject.name;
+                                host.virtualMachineList.add(temp);
+                            }
+                        }
+                	}                    
+                }
+            }            
+            this.space.write(root, null, Long.MAX_VALUE);
+        } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
+            System.out.println("Error: " + ex);
+        }        
+    }
+    
+    public void migrateProcess(VirtualMachine virtualMachineObject, Process processObject, String originalName){
+        Root template = new Root();
+        
+        try {
+    		Root root = (Root) space.take(template, null, 60 * 1000);
+            
+            Process temp = null;
+            for(Cloud cloud : root.cloudList){
+                if(cloud.name.equals(processObject.parent.parent.parent.name)){
+                    for(Host host : cloud.hostList){
+                        if(host.name.equals(processObject.parent.parent.name)){
+                        	for(VirtualMachine virtualMachine : host.virtualMachineList){
+                                if(virtualMachine.name.equals(processObject.parent.name)){
+                                	for(Process process : virtualMachine.processList){
+                                        if(process.name.equals(originalName)){
+                                        	temp = process;
+                                        }
+                                	}   
+                                	virtualMachine.processList.remove(temp);
+                                }       
+                        	}                       	                       	
+                        }
+                    }                 
+                }     
+            }
+            
+            for(Cloud cloud: root.cloudList){
+                if(cloud.name.equals(virtualMachineObject.parent.parent.name)){
+                	for(Host host : cloud.hostList){
+                        if(host.name.equals(virtualMachineObject.parent.name)){
+                        	for(VirtualMachine virtualMachine : host.virtualMachineList){
+                                if(virtualMachine.name.equals(virtualMachineObject.name)){
+                                	if(temp != null){
+                                		temp.name = processObject.name;
+                                        virtualMachine.processList.add(temp);
+                                    }
+                                }
+                        	}	
+                        }
+                	}                    
+                }
+            } 
+            
+            this.space.write(root, null, Long.MAX_VALUE);
+        } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
+            System.out.println("Error: " + ex);
+        }        
+    }
+    
+    
     
     public Root getCloudList(){
         Root template = new Root();
@@ -275,8 +419,16 @@ public class SpaceController {
             System.out.println("Error: " + ex);
         }
         
-        return root;
-        
+        return root;   
+    }
+    
+    
+    public void sendMessage(ProcessMessage processMessage) {
+    	try {
+            space.write(processMessage, null, Lease.FOREVER);
+        } catch (TransactionException | RemoteException ex) {
+            System.out.println("Error: " + ex);
+        }
     }
     
     
@@ -297,6 +449,20 @@ public class SpaceController {
                         });     
                     });
                 });  
+            });           
+        } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
+            System.out.println("Error: " + ex);
+        }  
+    }   
+    
+    public void printClients(){
+        ClientList template = new ClientList();
+        
+        try {
+        	ClientList list = (ClientList) space.read(template, null, 60 * 1000);
+            
+            list.clients.forEach(client->{
+                System.out.println("Cliente: " + client);               
             });           
         } catch (UnusableEntryException | TransactionException | InterruptedException | RemoteException ex) {
             System.out.println("Error: " + ex);

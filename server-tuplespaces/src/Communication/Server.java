@@ -1,71 +1,40 @@
 package Communication;
 
-import Communication.Packet.Action;
+import River.ProcessThread;
 import River.SpaceController;
+import River.Tuples.ClientMessage;
+import River.Tuples.ClientMessage.Action;
+import River.Tuples.Cloud;
 import River.Tuples.Root;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import River.Tuples.Host;
+import River.Tuples.Migration;
+import River.Tuples.VirtualMachine;
+import River.Tuples.Process;
+import River.Tuples.ProcessMessage;
 
 /**
  *
- * @author ulric
+ * @author Ulric
  */
 public class Server implements Runnable {
-
-    private ServerSocket serverSocket;
-    private Socket socket;
-    private Map<String, ObjectOutputStream> mapOnlines = new HashMap<String, ObjectOutputStream>();
-    private int portNumber;
-    
+       
     public SpaceController spaceController;
     
-    public Server(int port) {
-        this.portNumber = port;
+    public Server() {
         spaceController = new SpaceController();
-        spaceController.AddTuple();
-        spaceController.AddTuple("nuvem1");
-        spaceController.AddTuple("nuvem1", "host1");
-        spaceController.AddTuple("nuvem1", "host1", "vm1");
-        spaceController.AddTuple("nuvem1", "host1", "vm1", "p1");
-        spaceController.AddTuple("nuvem2");
-        spaceController.AddTuple("nuvem2", "host1");
-        spaceController.AddTuple("nuvem2", "host1", "vm1");
-        spaceController.AddTuple("nuvem1", "host2");
+        spaceController.addTuple();
+        spaceController.addTuple("nuvem1");
+        spaceController.addTuple("nuvem1", "host1");
+        spaceController.addTuple("nuvem1", "host1", "vm1");
+        spaceController.addTuple("nuvem2");
+        spaceController.addTuple("nuvem2", "host1");
+        spaceController.addTuple("nuvem2", "host1", "vm1");
         
-        System.out.println("Before");
         spaceController.printSpace();
         
-        spaceController.RemoveTuple("nuvem1", "host2");
-        
-        System.out.println("After");
-        spaceController.printSpace();
+        spaceController.createClientList();
     }
-    
-    public int getPort(){
-        return this.portNumber;
-    }
-    
-    public boolean initializeServer(){
-        try {
-            serverSocket = new ServerSocket(this.portNumber);
-            System.out.println("Servidor criado!");
-            return true;
-        } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        } 
-    }
-    
+      
     
     @Override
     public void run() {
@@ -75,134 +44,114 @@ public class Server implements Runnable {
     public void startListener(){
         while (true) {
             try {
-                socket = serverSocket.accept();
-            } catch (IOException ex) {
-                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            new Thread(new ListenerSocket(socket)).start();
-        }
-    }
-
-    private class ListenerSocket implements Runnable {
-
-        private ObjectOutputStream output;
-        private ObjectInputStream input;
-
-        public ListenerSocket(Socket socket) {
-            try {
-                this.output = new ObjectOutputStream(socket.getOutputStream());
-                this.input = new ObjectInputStream (socket.getInputStream());
-            } catch (IOException ex) {
-                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        @Override
-        public void run() {
-            Packet packet = null;
-            try {
-                while ((packet = (Packet) input.readObject()) != null) {
-                    Action action = packet.getAction();
-                    System.out.println("Recebeu action: " + action);
-                    if (action.equals(Action.CONNECT)) {
-                        boolean isConnected = connect(packet, output);
-                        if (isConnected) {
-                            mapOnlines.put(packet.getName(), output);
-                            System.out.println("Cliente conectado: " + mapOnlines.size());
-                            sendOnlines();
-                        }
-                    } else if (action.equals(Action.DISCONNECT)) {
-                        disconnect(packet, output);
-                        sendOnlines();
-                        return;
-                    } else if (action.equals(Action.SEND_ALL)) {
-                        sendAll(packet);
-                    } else if (action.equals(Action.UPDATE)) {
-                        Root currentRoot = spaceController.getCloudList();
-                        
-                        Packet newPacket = new Packet();
-                        packet.setAction(Action.UPDATE);
-                        packet.setContent(currentRoot);                                                                                 
-                        sendAll(packet);
-                    }
-                } 
-            } catch (ClassNotFoundException | IOException ex) {
-                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
-    private boolean connect(Packet packet, ObjectOutputStream output) {
-        if (mapOnlines.size() == 0) {
-            packet.setContent("YES");
-            send(packet, output);
-            System.out.println("map size: " + mapOnlines.size());
-            return true; 
-        }
-        
-        //Checa se o nome já está na lista de clientes
-        if (mapOnlines.containsKey(packet.getName())) {
-            packet.setContent("NO");
-            send(packet, output);
-            return false;
-        } else {
-            packet.setContent("YES");
-            send(packet, output);
-            return true;
-        }
-        
-        
-    }
-
-    public void disconnect(Packet packet, ObjectOutputStream output) {
-        mapOnlines.remove(packet.getName());
-
-        packet.setContent("até logo!");
-        sendAll(packet);
-        System.out.println("User " + packet.getName() + " desconectou");
-    }
-
-    public void send(Object packet, ObjectOutputStream output) {
-        try {
-            output.writeObject(packet);
-        } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-
-    public void sendAll(Packet packet) {
-        System.out.println("Chegou no sendAll: " + mapOnlines.size());
-        for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
-            if (!kv.getKey().equals(packet.getName())) {
-                try {
-                    kv.getValue().writeObject(packet);
-                } catch (IOException ex) {
-                    Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+            	ClientMessage template = new ClientMessage();
+                ClientMessage message = (ClientMessage) spaceController.space.take(template, null, Long.MAX_VALUE);
+                if (message == null) {
+                    System.out.println("Timeout error.");
                 }
+                else{
+                	System.out.println("Recebeu mensagem do cliente: " + message.name + " | Action: " + message.action);
+                	Action currentAction = (Action) message.action;
+                	if(currentAction.equals(Action.CONNECT)) {
+                		String clientName = message.name;
+                		spaceController.addClient(clientName);
+                		spaceController.printClients();
+                	} 
+                	else if(currentAction.equals(Action.UPDATE)) {
+                		Root cloudList = spaceController.getCloudList();
+                		spaceController.sendToClient(message.name, cloudList, River.Tuples.ServerMessage.Action.UPDATE);
+                	} 
+                	else if(currentAction.equals(Action.ADD)) {
+                		if(message.content instanceof Cloud) {
+                			Cloud cloud = (Cloud) message.content;
+                			spaceController.addTuple(cloud.name);
+                		}
+                		if(message.content instanceof Host) {              			  			
+                			Host host = (Host) message.content;              
+                			spaceController.addTuple(host.parent.name, host.name);                			
+                		}
+                		if(message.content instanceof VirtualMachine) {
+                			VirtualMachine virtualMachine = (VirtualMachine) message.content;
+                			spaceController.addTuple(virtualMachine.parent.parent.name, virtualMachine.parent.name,
+                					virtualMachine.name);               		
+                		}
+                		if(message.content instanceof Process) {               			
+                			Process process = (Process) message.content;
+                			spaceController.addTuple(process.parent.parent.parent.name, process.parent.parent.name,
+                					process.parent.name, process.name );
+                			ProcessThread processThread = new ProcessThread(message.name, process, spaceController);
+                    		new Thread(processThread).start();
+                		}              		             		
+                		Root cloudList = spaceController.getCloudList();
+                		spaceController.sendToClient(message.name, cloudList, River.Tuples.ServerMessage.Action.UPDATE);
+                		spaceController.printSpace();
+                	} 
+                	else if(currentAction.equals(Action.REMOVE)) {
+                		if(message.content instanceof Cloud) {
+        					Cloud cloud = (Cloud) message.content;
+                			spaceController.removeTuple(cloud.name);
+                		}
+                		if(message.content instanceof Host) {              			  			
+                			Host host = (Host) message.content;              
+                			spaceController.removeTuple(host.parent.name, host.name);                			
+                		}
+                		if(message.content instanceof VirtualMachine) {
+                			VirtualMachine virtualMachine = (VirtualMachine) message.content;
+                			spaceController.removeTuple(virtualMachine.parent.parent.name, virtualMachine.parent.name,
+                					virtualMachine.name);               		
+                		}
+                		if(message.content instanceof Process) {                			              			
+                			Process process = (Process) message.content;               			
+                			spaceController.removeTuple(process.parent.parent.parent.name, process.parent.parent.name,
+                					process.parent.name, process.name );   		
+                		}              		             		
+                		Root cloudList = spaceController.getCloudList();
+                		spaceController.sendToClient(message.name, cloudList, River.Tuples.ServerMessage.Action.UPDATE);
+                		spaceController.printSpace();
+                	}
+                	else if(currentAction.equals(Action.MESSAGE)) {
+                		ProcessMessage processMessage = (ProcessMessage) message.content;               		
+                		spaceController.sendMessage(processMessage);              		
+                	}
+                	else if(currentAction.equals(Action.MIGRATE_HOST)) {
+                		Migration migration = (Migration) message.content;
+                		Cloud cloud = (Cloud) migration.destination;
+                		Host host = (Host) migration.origin;
+                		spaceController.migrateHost(cloud, host, migration.originalName);
+                		
+                		Root cloudList = spaceController.getCloudList();
+                		spaceController.sendToClient(message.name, cloudList, River.Tuples.ServerMessage.Action.UPDATE);
+                		spaceController.printSpace();
+                	}  
+                	else if(currentAction.equals(Action.MIGRATE_VIRTUAL_MACHINE)) {
+                		Migration migration = (Migration) message.content;
+                		Host host = (Host) migration.destination;
+                		VirtualMachine virtualMachine = (VirtualMachine) migration.origin;
+                		spaceController.migrateVirtualMachine(host, virtualMachine , migration.originalName);
+                		
+                		System.out.println("Host: " + host.name + " | Cloud: " + host.parent.name);
+                		System.out.println("VM: " + virtualMachine.name + " | Host: " + virtualMachine.parent.name +
+                				" | Cloud: " + virtualMachine.parent.parent.name);
+                		
+                		Root cloudList = spaceController.getCloudList();
+                		spaceController.sendToClient(message.name, cloudList, River.Tuples.ServerMessage.Action.UPDATE);
+                		spaceController.printSpace();
+                	}
+                	else if(currentAction.equals(Action.MIGRATE_PROCESS)) {
+                		Migration migration = (Migration) message.content;
+                		VirtualMachine virtualMachine = (VirtualMachine) migration.destination;
+                		Process process = (Process) migration.origin;
+                		spaceController.migrateProcess(virtualMachine, process, migration.originalName);
+                		
+                		Root cloudList = spaceController.getCloudList();
+                		spaceController.sendToClient(message.name, cloudList, River.Tuples.ServerMessage.Action.UPDATE);
+                		spaceController.printSpace();
+                	}
+                }           	
+            } catch (Exception e) {
+            	
             }
         }
-        System.out.println("Enviou");
     }
 
-    private void sendOnlines() {
-        Set<String> setNames = new HashSet<String>();
-        for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
-            setNames.add(kv.getKey());
-        }
-
-        Packet packet = new Packet();
-        packet.setAction(Action.USERS_ONLINE);
-        packet.setSetOnlines(setNames);
-
-        for (Map.Entry<String, ObjectOutputStream> kv : mapOnlines.entrySet()) {
-            packet.setName(kv.getKey());
-            try {
-                kv.getValue().writeObject(packet);
-            } catch (IOException ex) {
-                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
 }

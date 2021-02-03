@@ -19,13 +19,11 @@ public class MainScreen {
         
         this.parentGUI = parentGUI;
         
-        // Hospedar
         panelMain = new JPanel();
         panelMain.setLayout(null); 
-        panelMain.setSize(800, 600);
 
-        labelServerPort = new JLabel("Servidor rodando...");
-        labelServerPort.setBounds(250, 200, 140, 40);
+        labelServerPort = new JLabel("O servidor foi iniciado!");
+        labelServerPort.setBounds(115, 150, 140, 50);
 
         panelMain.add(labelServerPort);
        

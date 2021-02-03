@@ -24,7 +24,7 @@ public class GUI implements Serializable{
     
    
     public GUI() {
-        window = new JFrame("Servidor - EspaÃ§o de Tuplas");
+        window = new JFrame("Servidor - Espaço de Tuplas");
         
         switchPanels = new JPanel(new CardLayout());
         
@@ -35,7 +35,7 @@ public class GUI implements Serializable{
         
         window.add(switchPanels);
         window.setResizable(false); 
-        window.setSize(600, 400);
+        window.setSize(355, 600);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setVisible(true); 
     }
